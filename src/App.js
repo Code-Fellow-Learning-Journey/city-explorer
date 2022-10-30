@@ -1,7 +1,9 @@
 import React from 'react';
 import axios from 'axios';
 import { Form } from 'react-bootstrap';
-import { hasUnreliableEmptyValue } from '@testing-library/user-event/dist/utils';
+import Movies from './Movies';
+import Weather from './Weather';
+
 
 
 
@@ -15,8 +17,8 @@ class App extends React.Component {
       error: false,
       errorMsg: '',
       image: '',
-      lat: '',
-      lon: '',
+      weatherData: [],
+      movieData: [],
     }
   }
 
@@ -33,33 +35,31 @@ class App extends React.Component {
     console.log(this.state.city);
     let response;
     try {
-      let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_CITY_API_KEY}&q=${this.state.city}&format=json`
-
-      let urlBack = `${process.env.REACT_APP_SERVER}/weather?cityName=${this.state.weather}`;
-
-      let weatherData = await axios.get(urlBack);
-
-      console.log(url)
-
-      console.log(weatherData.data);
-    
+      let locationURL = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_CITY_API_KEY}&q=${this.state.city}&format=json`
 
 
+      console.log(locationURL)
 
-      response = await axios.get(url);
+      response = await axios.get(locationURL);
+
 
       console.log(response)
       let location = response.data[0];
 
+      //call weather function and call in the location
+
+      //call movie 
+
       console.log(location);
       console.log(location.lat)
+      this.getMovies();
 
       this.setState({
         cityData: response.data[0],
         error: false,
         lat: location.lat,
         lon: location.lon,
-      })
+      }, () => this.getWeatherData(this.state.cityData))
 
     } catch (error) {
       console.log(error);
@@ -70,63 +70,91 @@ class App extends React.Component {
       console.log('test');
     }
   }
-};
 
-//         cityData: location,
-//         error: false,
-//         lat: location.lat,
-//         lon:location.lon,
-//         //map: urlmap
-//       }, () => {
-//           this.getMapData();
+  getWeatherData = async (location) => {
+    try {
+      let url = `${process.env.REACT_APP_SERVER}/weather?searchQuery=${this.state.city}&lat=${location.lat}&lon=${location.lon}`
 
-//       });
+      console.log(url);
 
-//     }
-//   }  
-// };
+      let weatherResponse = await axios.get(url)
+      console.log(weatherResponse.data);
+      this.setState({
+        weatherData: weatherResponse.data
+      });
+    } catch (error) {
+      this.setState({
+        error: true,
+        errorMsg: error.message
+      });
+    }
+  }
 
-// getMapData =async()=>{
-//   console.log()
-// }
+  getMovies = async () => {
+    try {
+      let movieURL = `${process.env.REACT_APP_SERVER}/movies?searchQuery=${this.state.city}`;
+      let movieResponse = await axios.get(movieURL);
+      this.setState({
+        movieData: movieResponse.data
+      });
+    } catch (error) {
+      this.setState({
+        error: true,
+        errorMsg: error.message
+      });
+    }
+  }
 
-render() {
-  return (
-    <>
-      <header>
-        <h1>null</h1>
-      </header>
+  getSecondaryData = () => {
+    this.getWeatherData();
+    //this.getMovies();
+  }
 
-      <main>
-        <Form onSubmit={this.getCityData}>
-          <label>Pick a City:
-            <input type='text' onInput={this.handleInput} />
-          </label>
-          <button id='blue' typeof='submit'>Explore!</button>
-        </Form>
-        {
-          this.state.error
-            ?
-            <p>{this.state.errorMsg}</p>
-            :
-       
-      <div>
 
-        <p>{this.state.cityData.display_name}</p>
-        <p>{this.state.cityData.lat}</p>
-        <p>{this.state.cityData.lon}</p>
-        <img src={`https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_CITY_API_KEY}&center=${this.state.cityData.lat},${this.state.cityData.lon}&zoom=12&size=400x400&maptype='streets'&markers=icon:small-red-cutout|${this.state.cityData.lat}${this.state.cityData.lon}`} alt="map" />
-        <p>hunter m fehr</p>
-      </div>
-      </main>
+  render() {
+    return (
+      <>
+        <header>
+          <h1>City Explorer</h1>
+        </header>
 
-    </>
+        <main>
+          <Form onSubmit={this.getCityData}>
+            <label>Pick a City:
+              <input type='text' onInput={this.handleInput} />
+            </label>
+            <button id='blue' typeof='submit'>Explore!</button>
+          </Form>
+          {
+            this.state.error
+              ?
+              <p>{this.state.errorMsg}</p>
+              :
+
+            
+              <div>
+
+                <p>{this.state.cityData.display_name}</p>
+                <p>{this.state.cityData.lat}</p>
+                <p>{this.state.cityData.lon}</p>
+                {this.state.lat &&
+                  <img src={`https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_CITY_API_KEY}&center=${this.state.lat},${this.state.lon}&zoom=12&size=400x400`} alt="map" />}
+                <p>hunter m fehr</p>
+              </div>
+          }
+                <Weather weatherData={this.state.weatherData} />
+
+                <Movies movieData={this.state.movieData} />
+              </main>
+            </>
+                );
+
+        }
         }
         
-  );
-};
 
 
-
-
-export default App;
+  
+          
+     
+        export default App;
