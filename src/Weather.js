@@ -9,8 +9,10 @@ class Weather extends React.Component {
           {
             this.props.weatherData.map(day => (
               <article>
-                <p>{day.weather}</p>
-                <p>{day.date}</p>
+                <>
+                <p>{day.forecast}</p>
+                <p>{day.time}</p>
+                </>
               </article>
             ))
           }

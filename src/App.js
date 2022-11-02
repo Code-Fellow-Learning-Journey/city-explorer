@@ -142,10 +142,11 @@ class App extends React.Component {
                 <p>hunter m fehr</p>
               </div>
           }
+          <>
                 <Weather weatherData={this.state.weatherData} />
 
                 <Movies movieData={this.state.movieData} />
-              </main>
+                </></main>
             </>
                 );
 
